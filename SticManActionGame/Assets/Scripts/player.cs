@@ -5,13 +5,22 @@ using UnityEngine;
 public class player : MonoBehaviour
 {
     // インスペクターで設定
-    public float speed;
-    public GroundCheck ground;
+    public float speed; //速度
+    public float jumpSpeed; //ジャンプ
+    public float jumpHeight; //ジャンプ高さ
+    public float jumpLimitTime; //ジャンプ制限時間
+    public float gravity; //重力
+    public GroundCheck ground; //接地判定
+    public GroundCheck head; //頭をぶつけた判定
 
     // プライベート変数
     private Animator anim = null;
     private Rigidbody2D rb = null;
     private bool isGround = false;
+    private bool isHead = false;
+    private bool isJump = false;
+    private float jumpPos = 0.0f;
+    private float jumpTime = 0.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -26,10 +35,48 @@ public class player : MonoBehaviour
     {
         // 接地判定を受け取る
         isGround = ground.IsGround();
+        isHead = head.IsGround();
 
         // キー入力に関する処理
         float horizontalKey = Input.GetAxis("Horizontal");
+        float verticalKey = Input.GetAxis("Vertical");
+
         float xSpeed = 0.0f;
+        float ySpeed = -gravity;
+
+        if (isGround)
+        {
+            if (verticalKey > 0)
+            {
+                ySpeed = jumpSpeed;
+                jumpPos = transform.position.y; //ジャンプした位置を記録
+                isJump = true;
+                jumpTime = 0.0f;
+            }
+            else
+            {
+                isJump = false;
+            }
+        }
+        else if (isJump)
+        {
+            // 上キーを押しているか
+            bool pushUpKey = verticalKey > 0;
+            // 現在の高さが飛べる高さより下か
+            bool canHeight = jumpPos + jumpHeight > transform.position.y;
+            // ジャンプ時間が長くないか
+            bool canTime = jumpLimitTime > jumpTime;
+            if (pushUpKey && canHeight && canTime && !isHead)
+            {
+                ySpeed = jumpSpeed;
+                jumpTime += Time.deltaTime;
+            }
+            else
+            {
+                isJump = false;
+                jumpTime = 0.0f;
+            }
+        }
 
         if(horizontalKey > 0)
         {
@@ -48,6 +95,9 @@ public class player : MonoBehaviour
             anim.SetBool("run", false);
             xSpeed = 0.0f;
         }
-        rb.velocity = new Vector2(xSpeed, rb.velocity.y);
+
+        anim.SetBool("jump", isJump);
+        anim.SetBool("ground", isGround);
+        rb.velocity = new Vector2(xSpeed, ySpeed);
     }
 }
