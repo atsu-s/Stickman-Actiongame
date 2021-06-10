@@ -370,9 +370,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  jumpSpeed: 5
+  jumpSpeed: 4
   jumpHeight: 3
-  jumpLimitTime: 4
+  jumpLimitTime: 3
   gravity: 3
   ground: {fileID: 1261304516}
   head: {fileID: 1612792543}
